@@ -8,48 +8,61 @@ ENV PATH_HOME=/home/docker \
     PATH_WORKSPACE=/home/docker/workspace
 
 #-----------------------------------------------------------------------------
-# Install NodeJS
+# Install Ruby Dependency
 #-----------------------------------------------------------------------------
-# RUN yum -y install nodejs npm --enablerepo=epel \
-RUN yum -y install https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm nodejs \
+RUN yum -y install \
+      --setopt=tsflags=nodocs \
+      --disableplugin=fastestmirror \
+        gcc \
+        gcc-c++ \
+        kernel-devel \
+        readline-dev \
+        ncurses \
+        ncurse-devel \
+        lua-devel \ 
+        lzo-devel \
+        vim* 
+
+#-----------------------------------------------------------------------------
+# Install Python 3.5
+#-----------------------------------------------------------------------------
+RUN yum -y install https://centos7.iuscommunity.org/ius-release.rpm \
+    && yum -y update \
+    && yum -y install python35u python35u-libs python35u-devel python35u-pip 
+
+#-----------------------------------------------------------------------------
+# Install Python 2.7
+#-----------------------------------------------------------------------------
+# RUN yum -y rpm-build \
+#         redhat-rpm-config \
+#         yum-utils \
+#     && yum -y groupinstall "Development Tools" \
+#     && sudo yum-builddep -y python-2.7.11-4.fc24.src.rpm \
+#     && mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS} \
+#     && cd ~/rpmbuild/SRPMS \
+#     && curl -O https://kojipkgs.fedoraproject.org//packages/python/2.7.11/4.fc24/src/python-2.7.11-4.fc24.src.rpm \
+#     && cd ~/rpmbuild/SRPMS \
+#     && rpmbuild --rebuild python-2.7.11-4.fc24.src.rpm \
+#     && cd ~/rpmbuild/SPECS/ \
+#     && sed -i -e "s/^%global run_selftest_suite 1/%global run_selftest_suite 0/g" python.spec  # OPTIONAL \
+#     && rpmbuild -ba python.spec \
+#     && cd ~/rpmbuild/SRPMS/ \
+#     && rpmbuild --rebuild python2711-2.7.11-4.el7.centos.src.rpm \
+#     && cd ~/rpmbuild/RPMS/ \
+#     && sudo yum localinstall --nogpgcheck python-libs-2.7.11-4.el7.centos.x86_64.rpm python-2.7.11-4.el7.centos.x86_64.rpm
 
 #-----------------------------------------------------------------------------
 # Clean Up All Cache
 #-----------------------------------------------------------------------------
-    && yum clean all
+RUN yum clean all
 
-#-----------------------------------------------------------------------------
-# Install Javascipt Unit Test
-#-----------------------------------------------------------------------------
-RUN /usr/bin/npm install chai \
-    && /usr/bin/npm install tv4 \
-    && /usr/bin/npm install newman \
-
-#-----------------------------------------------------------------------------
-# Install Javascipt Packages Manager
-#-----------------------------------------------------------------------------
-    && /usr/bin/npm install --global yarn \
-    && /usr/bin/npm install --global bower \
-    && /usr/bin/npm install --global grunt \
-    && /usr/bin/npm install --global gulp \
-    && /usr/bin/npm install --global yo
-
-#-----------------------------------------------------------------------------
-# Upgrade Javascipt Packages Manager
-#-----------------------------------------------------------------------------
-RUN /usr/bin/npm upgrade --global chai \
-    && /usr/bin/npm upgrade --global tv4 \
-    && /usr/bin/npm upgrade --global newman \
-    && /usr/bin/npm upgrade --global yarn \
-    && /usr/bin/npm upgrade --global bower \
-    && /usr/bin/npm upgrade --global grunt \
-    && /usr/bin/npm upgrade --global gulp \
-    && /usr/bin/npm upgrade --global yo
-
-#-----------------------------------------------------------------------------
-# Move 'node_modules' To 'root' Folder
-#-----------------------------------------------------------------------------
-RUN mv /node_modules $HOME/node_modules
+# -----------------------------------------------------------------------------
+# UTC Timezone & Networking
+# -----------------------------------------------------------------------------
+RUN ln -sf \
+		/usr/share/zoneinfo/UTC \
+		/etc/localtime \
+	&& echo "NETWORKING=yes" > /etc/sysconfig/network
 
 #-----------------------------------------------------------------------------
 # Set Configuration
